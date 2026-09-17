@@ -1,13 +1,13 @@
 import { useEffect,useRef,useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowRight,ArrowLeft,Shuffle,Sparkles,Check,Moon } from 'lucide-react';
+import { ArrowDown,ArrowRight,ArrowLeft,BriefcaseBusiness,Shuffle,Sparkles,Check,Heart,Moon,UserRound,WalletCards } from 'lucide-react';
 import { categories,contexts,loveCategories,prompts,spreads } from '../data/options';
 import { shuffleDeck } from '../utils/shuffle';
 import { getDaily,saveDaily,saveHistory } from '../utils/storage';
 import { getReading,AI_ENABLED } from '../services/aiTarotService';
 import { CardBack } from '../components/Card';
 import ReadingResult from '../components/ReadingResult';
-export default function Reading({initialCategory='general',daily=false}){
+function LegacyReading({initialCategory='general',daily=false}){
  const [params]=useSearchParams();const dailyRecord=daily?getDaily():null;
  const [category,setCategory]=useState(daily?'daily':initialCategory);const [question,setQuestion]=useState('');const [context,setContext]=useState('');
  const [spread,setSpread]=useState(daily?'single':(spreads[params.get('spread')]?params.get('spread'):'timeline-3'));
@@ -26,3 +26,43 @@ export default function Reading({initialCategory='general',daily=false}){
  {stage==='loading'&&<div className="loading-stage" role="status"><Moon className="pulse" size={64} strokeWidth={1}/><h2>Đang kết nối các thông điệp...</h2></div>}</div>;
 }
 function ArrowUpRightIcon(){return <ArrowRight size={13}/>;}
+
+const readingTopics=[
+ {id:'love',label:'Tình yêu',icon:Heart},
+ {id:'career',label:'Công việc',icon:BriefcaseBusiness},
+ {id:'finance',label:'Tài chính',icon:WalletCards},
+ {id:'self',label:'Bản thân',icon:UserRound},
+ {id:'general',label:'Câu hỏi khác',icon:Sparkles},
+];
+const primarySpreads=['single','timeline-3','relationship-3'];
+function questionPlaceholder(category){
+ if(loveCategories.includes(category))return 'Người ấy đang nghĩ gì về tôi?';
+ if(category==='career')return 'Tôi có nên tiếp tục công việc hiện tại?';
+ if(category==='finance')return 'Tôi cần lưu ý điều gì về tài chính thời gian tới?';
+ if(category==='self')return 'Điều gì sẽ giúp tôi hiểu bản thân hơn?';
+ return 'Điều gì mình cần hiểu rõ hơn vào lúc này?';
+}
+export default function Reading({initialCategory='general',daily=false}){
+ const [params]=useSearchParams();const dailyRecord=daily?getDaily():null;
+ const initialSpread=spreads[params.get('spread')]?params.get('spread'):'timeline-3';
+ const [category,setCategory]=useState(daily?'daily':initialCategory);const [question,setQuestion]=useState('');const [context,setContext]=useState('');
+ const [spread,setSpread]=useState(daily?'single':initialSpread);const [showMoreSpreads,setShowMoreSpreads]=useState(!primarySpreads.includes(initialSpread));
+ const [stage,setStage]=useState(dailyRecord?'result':'setup');const [deck,setDeck]=useState([]);const [selected,setSelected]=useState([]);const [record,setRecord]=useState(dailyRecord);const [saved,setSaved]=useState(true);const [error,setError]=useState('');
+ const timer=useRef();const busy=useRef(false);const active=useRef(true);useEffect(()=>{active.current=true;return()=>{active.current=false;clearTimeout(timer.current);};},[]);
+ const needed=spreads[spread].positions.length;const contextConfig=contexts[category];const visibleSpreads=showMoreSpreads?Object.entries(spreads):Object.entries(spreads).filter(([id])=>primarySpreads.includes(id));
+ function selectTopic(id){setCategory(id);setContext('');}
+ function beginShuffle(){if(busy.current)return;if(daily){const existing=getDaily();if(existing){setRecord(existing);setStage('result');return;}}busy.current=true;setStage('shuffling');setDeck(shuffleDeck());timer.current=setTimeout(()=>{setStage('select');busy.current=false;},1600);}
+ function toggle(index){setSelected(current=>current.includes(index)?current.filter(item=>item!==index):current.length<needed?[...current,index]:current);}
+ async function reveal(){if(busy.current||selected.length!==needed)return;busy.current=true;setStage('loading');try{if(daily){const existing=getDaily();if(existing){setRecord(existing);setStage('result');return;}}const input={question:question.trim(),category,context,spread,cards:selected.map((index,position)=>({...deck[index],position:spreads[spread].positions[position]}))};const reading=await getReading(input);if(!active.current)return;const next={...input,id:crypto.randomUUID(),date:new Date().toISOString(),reading};if(daily){const existing=getDaily();if(existing){setRecord(existing);setStage('result');return;}}const dailySaved=!daily||saveDaily(next);const historySaved=saveHistory(next);setSaved(dailySaved&&historySaved);setRecord(next);setStage('result');window.scrollTo({top:0,behavior:'smooth'});}catch{setError('Chưa thể đọc trải bài. Vui lòng thử lật lại.');setStage('select');}finally{busy.current=false;}}
+ if(stage==='result')return <div className="page"><ReadingResult record={record} saved={saved} daily={daily}/></div>;
+ const titles={love:'Lắng nghe trái tim',career:'Con đường của bạn',finance:'Góc nhìn về sự đủ đầy',daily:'Một lá bài cho hôm nay',general:'Một khoảng lặng cho bạn'};const step=stage==='setup'?0:stage==='focus'||stage==='shuffling'?1:stage==='select'?2:3;
+ return <div className="page reading-page"><div className="page-heading"><div className="eyebrow">{daily?'DAILY TAROT':'RÚT BÀI TAROT'}</div><h1>{titles[category]||titles.general}</h1><p>{daily?'Đón nhận một thông điệp và mang theo trong ngày.':'Hãy dành một khoảng khắc cho chính mình.'}</p></div><ol className="stepper">{['Câu hỏi','Chuẩn bị','Chọn bài','Thông điệp'].map((label,index)=><li key={label} className={step>=index?'current':''}><span>{index+1}</span>{label}</li>)}</ol>
+ {stage==='setup'&&<form className="reading-form" onSubmit={event=>{event.preventDefault();setStage('focus');}}>{!daily&&<section className="form-section topic-section" aria-labelledby="topic-heading"><span className="form-number">01</span><h2 id="topic-heading">Bạn muốn xem về điều gì?</h2><div className="topic-options" role="radiogroup" aria-label="Chủ đề của bạn">{readingTopics.map(({id,label,icon:Icon})=><button type="button" role="radio" aria-checked={category===id} className={category===id?'topic-option selected':'topic-option'} key={id} onClick={()=>selectTopic(id)}><Icon size={17}/>{label}</button>)}</div></section>}
+ <section className="form-section question-section"><span className="form-number">02</span><div className="label-line"><label htmlFor="question">Bạn đang muốn tìm câu trả lời cho điều gì?</label><span>Không bắt buộc</span></div><textarea id="question" maxLength={500} rows={4} value={question} onChange={event=>setQuestion(event.target.value)} placeholder={questionPlaceholder(category)}/><div className="char-count">{question.length}/500</div>{prompts[category]&&<div className="prompt-list">{prompts[category].map(prompt=><button type="button" key={prompt} onClick={()=>setQuestion(prompt)}>{prompt}<ArrowRight size={13}/></button>)}</div>}</section>
+ {contextConfig&&<section className="form-section context-section" aria-labelledby="context-heading"><span className="form-number">03</span><div className="context-heading"><h2 id="context-heading">{contextConfig.label}</h2><span>Chọn một nếu phù hợp</span></div><div className="context-options" role="radiogroup" aria-label={contextConfig.label}>{contextConfig.options.map(option=><button type="button" role="radio" aria-checked={context===option} className={context===option?'context-option selected':'context-option'} key={option} onClick={()=>setContext(context===option?'':option)}>{context===option&&<Check size={15}/>} {option}</button>)}</div></section>}
+ {!daily&&<fieldset className="form-section spread-section"><legend><span className="form-number">04</span>Chọn kiểu trải bài</legend><div className="spread-options">{visibleSpreads.map(([id,value])=><label className={spread===id?'spread-option checked':'spread-option'} key={id}><input type="radio" name="spread" value={id} checked={spread===id} onChange={()=>setSpread(id)}/><span className="spread-count">{value.positions.length}</span><span><strong>{value.name}</strong><small>{value.positions.join(' · ')}</small></span>{spread===id&&<Check size={18}/>}</label>)}</div>{!showMoreSpreads&&<button type="button" className="more-spreads" onClick={()=>setShowMoreSpreads(true)}>Xem thêm kiểu trải bài <ArrowDown size={15}/></button>}</fieldset>}
+ {category==='finance'&&<p className="notice">Tarot không thay thế tư vấn tài chính chuyên nghiệp.</p>}<p className="privacy-note">{AI_ENABLED?'Chế độ AI đang bật: câu hỏi, ngữ cảnh và các lá đã chọn sẽ được gửi tới dịch vụ AI để diễn giải.':'Lịch sử Tarot được lưu trên thiết bị của bạn.'}</p><button type="submit" className="button primary full">Tiếp tục <ArrowRight size={17}/></button><p className="form-reassurance">Bạn vẫn có thể quay lại chỉnh câu hỏi trước khi rút bài.</p></form>}
+ {(stage==='focus'||stage==='shuffling')&&<div className="focus-stage"><div className={`deck-stack ${stage==='shuffling'?'shuffling':''}`} aria-hidden="true">{Array.from({length:78},(_,index)=><div key={index} style={{'--i':index,transform:`translate(${index*.055}px,${-index*.055}px) rotate(${index%3-1}deg)`}}><CardBack/></div>)}</div><h2>Hãy tập trung vào câu hỏi của bạn.</h2><p>{question||'Hít thở thật chậm. Dành khoảng khắc này cho chính mình.'}</p><button className="button primary" disabled={stage==='shuffling'} onClick={beginShuffle}><Shuffle size={18}/>{stage==='shuffling'?'Đang xào 78 lá bài...':'Xào bài'}</button>{stage==='focus'&&<button className="text-link back-button" onClick={()=>setStage('setup')}><ArrowLeft size={16}/>Điều chỉnh câu hỏi</button>}</div>}
+ {stage==='select'&&<div className="selection-stage"><h2>Hãy chọn những lá bài thu hút bạn nhất.</h2><p className="selection-count" aria-live="polite">Đã chọn {selected.length}/{needed}</p><div className="selection-grid">{deck.slice(0,24).map((card,index)=><button key={card.id} className={`select-card ${selected.includes(index)?'selected':''}`} aria-label={`Lá úp ${index+1}${selected.includes(index)?`, đã chọn thứ ${selected.indexOf(index)+1}`:''}`} aria-pressed={selected.includes(index)} disabled={selected.length===needed&&!selected.includes(index)} onClick={()=>toggle(index)}><CardBack/>{selected.includes(index)&&<span className="selected-number">{selected.indexOf(index)+1}</span>}</button>)}</div><p className="notice" role="alert">{error}</p><button className="button primary" disabled={selected.length!==needed} onClick={reveal}><Sparkles size={17}/>Lật bài <ArrowRight size={17}/></button></div>}
+ {stage==='loading'&&<div className="loading-stage" role="status"><Moon className="pulse" size={64} strokeWidth={1}/><h2>Đang kết nối các thông điệp...</h2></div>}</div>;
+}
