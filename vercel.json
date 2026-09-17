@@ -1,0 +1,1 @@
+{"rewrites":[{"source":"/((?!api/|assets/|cards-images/).*)","destination":"/index.html"}]}

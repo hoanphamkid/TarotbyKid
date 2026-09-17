@@ -1,0 +1,4 @@
+import { useState } from 'react';
+import { Moon, Sparkles } from 'lucide-react';
+export function CardBack({className=''}){return <div className={`card-back ${className}`} aria-hidden="true"><div className="back-frame"><span className="back-star">✦</span><div className="back-orbit"><Moon strokeWidth={0.8}/><Sparkles className="orbit-star" strokeWidth={1}/></div><span className="back-label">HOANPHAMTAROT</span><span className="back-star">✦</span></div></div>;}
+export function CardImage({card,orientation='upright',eager=false}){const [failed,setFailed]=useState(false);return failed?<div className="image-fallback"><Moon/><strong>{card.name}</strong><span>{card.vietnameseName}</span></div>:<img className={`tarot-image ${orientation==='reversed'?'reversed':''}`} src={card.image} alt={`${card.name} - ${card.vietnameseName}${orientation==='reversed'?' (lá ngược)':''}`} loading={eager?'eager':'lazy'} onError={()=>setFailed(true)}/>;}
