@@ -84,6 +84,7 @@ export default function ReadingResult({ record, saved = true, daily = false }) {
           <span className="eyebrow">01 · TỔNG QUAN</span>
           <h2>Bức tranh của trải bài</h2>
           <p>{reading.overview}</p>
+          <p>{reading.focusSummary}</p>
         </section>
         <section>
           <span className="eyebrow">02 · TỪNG LÁ BÀI</span>
@@ -100,6 +101,7 @@ export default function ReadingResult({ record, saved = true, daily = false }) {
                   ))}
                 </div>
                 <p>{d.meaning}</p>
+                <p>{d.application}</p>
                 <p className="position-note">{d.positionMeaning}</p>
                 <p>{d.advice}</p>
               </div>
@@ -117,6 +119,7 @@ export default function ReadingResult({ record, saved = true, daily = false }) {
           <span className="eyebrow">04 · THÔNG ĐIỆP CHÍNH</span>
           <h2>Điều dành cho bạn lúc này</h2>
           <p>{reading.message}</p>
+          <p>{reading.conclusion}</p>
         </section>
         <section>
           <span className="eyebrow">05 · ĐIỀU NÊN CHÚ Ý</span>

@@ -83,6 +83,30 @@ const contextNotes = {
   "Đang học":
     "Chia mục tiêu học tập thành các bước và tìm phản hồi từ người hướng dẫn.",
 };
+function questionFocus(question) {
+  return question.trim()
+    ? `Với điều bạn đang hỏi: “${question.trim()}”`
+    : "Với điều bạn đang chiêm nghiệm lúc này";
+}
+
+function buildFocusSummary(question, context, resolved, reversed) {
+  const first = resolved[0];
+  const last = resolved.at(-1);
+  const contextLine = context
+    ? ` Ngữ cảnh “${context}” cho thấy lời giải nên được đối chiếu với hoàn cảnh thực tế của bạn.`
+    : " Hãy đối chiếu lời giải với hoàn cảnh thực tế của bạn.";
+  const reversedLine = reversed
+    ? ` Có ${reversed} lá ngược, nên phần cần chú ý nằm ở những điều chưa được nói rõ, đang chậm lại hoặc cần được điều chỉnh.`
+    : " Các lá bài cùng nhắc bạn quan sát cả cảm xúc lẫn hành động cụ thể trước khi đi đến kết luận.";
+  return `${questionFocus(question)}, mạch trải bài đi từ ${first.card.vietnameseName} ở vị trí ${first.position.toLowerCase()} đến ${last.card.vietnameseName} ở vị trí ${last.position.toLowerCase()}. Điều này gợi ý bạn bắt đầu bằng việc nhìn rõ ${first.card.keywords[0]}, rồi dồn sự chú ý vào ${last.card.keywords[0]} như một bước thực tế tiếp theo.${contextLine}${reversedLine}`;
+}
+
+function buildConclusion(question, resolved, details) {
+  const last = resolved.at(-1);
+  const lastDetail = details.at(-1);
+  return `${questionFocus(question)}, trọng tâm không nằm ở việc đoán một kết quả cố định. ${last.card.vietnameseName} tại vị trí ${last.position.toLowerCase()} nhấn mạnh ${last.card.keywords[0]} và ${last.card.keywords[1]}. ${lastDetail.meaning} Hãy dùng gợi ý này để chọn một hành động cụ thể: ${lastDetail.advice.toLocaleLowerCase()}`;
+}
+
 export function interpretTarot(input) {
   const {
     question = "",
@@ -146,6 +170,7 @@ export function interpretTarot(input) {
       positionNotes[c.position] ||
       "Dùng thông điệp như một điểm tựa để quan sát hoàn cảnh hiện tại.",
     advice: c.card[c.orientation].advice,
+    application: `${questionFocus(question)}: ý nghĩa của ${c.card.vietnameseName} ở vị trí ${c.position.toLowerCase()} cần được đọc như một góc nhìn cho tình huống này, không phải kết luận thay bạn.`,
   }));
   const normalized = question.toLocaleLowerCase("vi");
   let questionNote =
@@ -173,9 +198,11 @@ export function interpretTarot(input) {
             : "Chưa rõ"
       : null;
   return {
+    focusSummary: buildFocusSummary(question, context, resolved, reversed),
     overview: `Trải bài ${spreads[spread].name.toLowerCase()} về ${categories.find((c) => c[0] === category)?.[1].toLowerCase() || "câu hỏi của bạn"} gồm ${cards.length} lá, với ${reversed} lá ngược. ${contextNotes[context] || "Đối chiếu những gợi ý dưới đây với hoàn cảnh và trải nghiệm của chính bạn."}`,
     details,
     connections: links,
+    conclusion: buildConclusion(question, resolved, details),
     message: `Trải bài gợi ý: ${resolved.at(-1).card[resolved.at(-1).orientation].general} ${question ? questionNote : ""}`,
     attention:
       reversed > cards.length / 2
