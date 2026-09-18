@@ -2176,6 +2176,10 @@ legend {
 .loader-overlay h2 { max-width: 640px; margin: 4px 0 0; color: #fffaf2; font-family: "Be Vietnam Pro", sans-serif; font-size: clamp(21px, 3vw, 28px); font-weight: 500; line-height: 1.35; }
 .loader-overlay p { margin: 0; color: #f4eee5; font-size: 18px; font-style: italic; }
 @keyframes loader-spin { to { transform: rotate(360deg); } }
+.live-status { position: fixed; right: 16px; bottom: 16px; z-index: 80; display: flex; align-items: center; gap: 12px; padding: 9px 11px; border: 1px solid #ffffff20; border-radius: 5px; background: #110d1de8; box-shadow: 0 10px 28px #0006; color: #d9d2c7; font-size: 11px; backdrop-filter: blur(10px); }
+.live-status span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.live-status span:first-child svg { color: #83d2ad; }
+@media (max-width: 540px) { .live-status { right: 10px; bottom: 10px; gap: 8px; padding: 8px 9px; font-size: 10px; } }
 @keyframes stage-enter {
   from {
     opacity: 0;

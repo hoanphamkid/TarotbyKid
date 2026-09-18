@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Moon, Sparkles, X } from "lucide-react";
 import { Analytics } from "@vercel/analytics/react";
+import LiveStatus from "./LiveStatus";
 
 export default function WelcomeModal() {
   const [open, setOpen] = useState(true);
@@ -20,10 +21,17 @@ export default function WelcomeModal() {
     };
   }, [open]);
 
-  if (!open) return <Analytics />;
+  if (!open)
+    return (
+      <>
+        <Analytics />
+        <LiveStatus />
+      </>
+    );
   return (
     <>
       <Analytics />
+      <LiveStatus />
       <div
         className="welcome-overlay"
         role="presentation"
