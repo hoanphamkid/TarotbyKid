@@ -2190,6 +2190,8 @@ body.modal-open { overflow: hidden; }
 .feedback-compose textarea { min-height: 76px; }
 .feedback-compose > div { display: flex; align-items: center; gap: 12px; margin-top: 9px; }
 .feedback-compose span { color: var(--muted); font-size: 10px; }
+.feedback-compose .feedback-notice { color: #a8d1ad; font-size: 11px; }
+.feedback-compose textarea:disabled { opacity: .6; cursor: not-allowed; }
 .mood-options button,.journal-toggle,.journal-save { min-height: 36px; border: 1px solid #ffffff22; padding: 8px 11px; border-radius: 5px; font-size: 11px; display: inline-flex; align-items: center; gap: 7px; }
 .mood-options button.selected,.journal-toggle.active { color: var(--gold); border-color: var(--gold); background: #d6b98112; }
 .journal-actions { margin-top: 13px; align-items: center; }
