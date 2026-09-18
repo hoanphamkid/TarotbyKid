@@ -19,6 +19,7 @@ import { getDaily, saveDaily, saveHistory } from "../utils/storage";
 import { getReading, AI_ENABLED } from "../services/aiTarotService";
 import { analyzeQuestion } from "../services/questionAnalyzer";
 import { CardBack } from "../components/Card";
+import ReadingLoader from "../components/ReadingLoader";
 import ReadingResult from "../components/ReadingResult";
 const readingTopics = [
   { id: "love", label: "Tình yêu", icon: Heart },
@@ -481,12 +482,7 @@ export default function Reading({
           </button>
         </div>
       )}
-      {stage === "loading" && (
-        <div className="loading-stage" role="status">
-          <Moon className="pulse" size={64} strokeWidth={1} />
-          <h2>Đang kết nối các thông điệp...</h2>
-        </div>
-      )}
+      {stage === "loading" && <ReadingLoader deck={deck} selected={selected} />}
     </div>
   );
 }
