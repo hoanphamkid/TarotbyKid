@@ -2172,6 +2172,11 @@ legend {
 .journal-feedback { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 16px; color: var(--muted); font-size: 11px; }
 .journal-feedback button { border-bottom: 1px solid #ffffff33; color: #e8dfd2; padding: 5px 2px; font-size: 11px; }
 .journal-feedback button.selected { color: var(--gold); border-color: var(--gold); }
+.feedback-compose { margin-top: 16px; }
+.feedback-compose label { margin-top: 0; }
+.feedback-compose textarea { min-height: 76px; }
+.feedback-compose > div { display: flex; align-items: center; gap: 12px; margin-top: 9px; }
+.feedback-compose span { color: var(--muted); font-size: 10px; }
 .mood-options button,.journal-toggle,.journal-save { min-height: 36px; border: 1px solid #ffffff22; padding: 8px 11px; border-radius: 5px; font-size: 11px; display: inline-flex; align-items: center; gap: 7px; }
 .mood-options button.selected,.journal-toggle.active { color: var(--gold); border-color: var(--gold); background: #d6b98112; }
 .journal-actions { margin-top: 13px; align-items: center; }
@@ -2191,6 +2196,17 @@ legend {
 .favorite-list article { display: flex; gap: 12px; align-items: center; padding: 16px; background: #100c17; color: var(--gold); }
 .favorite-list div { display: grid; gap: 4px; color: #f0e8df; font-size: 12px; }
 .favorite-list span { color: var(--muted); font-size: 10px; }
+.feedback-stats { max-width: 520px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 auto 28px; }
+.feedback-stats article { border: 1px solid var(--line); background: #100c17; padding: 19px; color: var(--gold); display: grid; gap: 7px; }
+.feedback-stats strong { font-family: Georgia, serif; font-size: 30px; font-weight: 400; color: #f0e8df; }
+.feedback-stats span { color: var(--muted); font-size: 11px; }
+.feedback-list { max-width: 700px; margin: auto; display: grid; gap: 12px; }
+.feedback-list article { border: 1px solid var(--line); background: #100c17; padding: 18px; }
+.feedback-list article > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.feedback-list time { color: var(--muted); font-size: 10px; }
+.feedback-list p { margin: 13px 0 0; font-size: 12px; white-space: pre-wrap; }
+.feedback-rating { color: #d9a7b1; font-size: 10px; }
+.feedback-rating.helpful { color: #a8d1ad; }
 @media (hover: hover) {
   .topic-option:hover,
   .context-option:hover {

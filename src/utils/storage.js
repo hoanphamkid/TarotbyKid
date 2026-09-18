@@ -72,6 +72,15 @@ export function getJournalEntries() {
   return entries && typeof entries === "object" ? entries : {};
 }
 
+export function getFeedback() {
+  const rows = readStorage("tarotFeedback", []);
+  return Array.isArray(rows) ? rows.filter((row) => row && typeof row.id === "string" && typeof row.rating === "string") : [];
+}
+
+export function saveFeedback(feedback) {
+  return writeStorage("tarotFeedback", [feedback, ...getFeedback()].slice(0, 100));
+}
+
 export function getDailyStats() {
   try {
     const days = [];

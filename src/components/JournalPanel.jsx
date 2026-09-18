@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Clock3, Heart, NotebookPen, Save } from "lucide-react";
-import { getJournalEntry, saveJournalEntry } from "../utils/storage";
+import { getJournalEntry, saveFeedback, saveJournalEntry } from "../utils/storage";
 
 const moods = [
   ["clear", "Rõ hơn"],
@@ -11,6 +11,8 @@ const moods = [
 export default function JournalPanel({ record }) {
   const [entry, setEntry] = useState(() => getJournalEntry(record.id));
   const [saved, setSaved] = useState("");
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackNotice, setFeedbackNotice] = useState("");
   const update = (patch) => {
     const next = { ...entry, ...patch };
     setEntry(next);
@@ -21,6 +23,21 @@ export default function JournalPanel({ record }) {
     const followUpAt = new Date();
     followUpAt.setDate(followUpAt.getDate() + 7);
     update({ followUpAt: followUpAt.toISOString() });
+  };
+  const submitFeedback = () => {
+    if (!entry.feedback) {
+      setFeedbackNotice("Hãy chọn một đánh giá trước khi gửi.");
+      return;
+    }
+    saveFeedback({
+      id: crypto.randomUUID(),
+      recordId: record.id,
+      rating: entry.feedback,
+      message: feedbackText.trim(),
+      date: new Date().toISOString(),
+    });
+    setFeedbackText("");
+    setFeedbackNotice("Đã gửi phản hồi. Cảm ơn bạn.");
   };
   return (
     <section className="journal-panel" aria-labelledby="journal-title">
@@ -48,6 +65,11 @@ export default function JournalPanel({ record }) {
         <span>Trải bài này có hữu ích với bạn không?</span>
         <button type="button" className={entry.feedback === "helpful" ? "selected" : ""} aria-pressed={entry.feedback === "helpful"} onClick={() => update({ feedback: "helpful" })}>Có</button>
         <button type="button" className={entry.feedback === "not-yet" ? "selected" : ""} aria-pressed={entry.feedback === "not-yet"} onClick={() => update({ feedback: "not-yet" })}>Chưa thực sự</button>
+      </div>
+      <div className="feedback-compose">
+        <label htmlFor={`feedback-${record.id}`}>Bạn muốn góp ý thêm?</label>
+        <textarea id={`feedback-${record.id}`} rows={3} maxLength={400} value={feedbackText} onChange={(event) => setFeedbackText(event.target.value)} placeholder="Viết một phản hồi ngắn, không cần để lại thông tin cá nhân." />
+        <div><button type="button" className="button ghost" onClick={submitFeedback}>Gửi phản hồi</button><span aria-live="polite">{feedbackNotice}</span></div>
       </div>
       <label htmlFor={`journal-${record.id}`}>Ghi chú riêng của bạn</label>
       <textarea

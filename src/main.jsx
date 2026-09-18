@@ -13,6 +13,7 @@ import Reading from "./pages/Reading";
 import { Cards, CardDetail } from "./pages/Cards";
 import History from "./pages/History";
 import Space from "./pages/Space";
+import Feedback from "./pages/Feedback";
 import "./styles/index.css";
 class ErrorBoundary extends React.Component {
   state = { error: false };
@@ -68,6 +69,7 @@ function App() {
             <Route path="cards/:slug" element={<CardDetail />} />
             <Route path="history" element={<History />} />
             <Route path="space" element={<Space />} />
+            <Route path="feedback" element={<Feedback />} />
             <Route
               path="*"
               element={

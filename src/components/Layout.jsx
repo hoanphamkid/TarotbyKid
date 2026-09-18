@@ -4,6 +4,7 @@ import { Menu, X, Moon, ArrowUpRight, Heart } from "lucide-react";
 import { useEffect } from "react";
 const links = [
   ["/space", "Không gian"],
+  ["/feedback", "Phản hồi"],
   ["/", "Trang chủ"],
   ["/reading", "Rút bài"],
   ["/daily", "Tarot hôm nay"],
