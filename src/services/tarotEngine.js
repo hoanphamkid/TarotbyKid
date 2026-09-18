@@ -198,6 +198,7 @@ export function interpretTarot(input) {
             : "Chưa rõ"
       : null;
   return {
+    questionAnalysis: input.questionAnalysis || null,
     focusSummary: buildFocusSummary(question, context, resolved, reversed),
     overview: `Trải bài ${spreads[spread].name.toLowerCase()} về ${categories.find((c) => c[0] === category)?.[1].toLowerCase() || "câu hỏi của bạn"} gồm ${cards.length} lá, với ${reversed} lá ngược. ${contextNotes[context] || "Đối chiếu những gợi ý dưới đây với hoàn cảnh và trải nghiệm của chính bạn."}`,
     details,

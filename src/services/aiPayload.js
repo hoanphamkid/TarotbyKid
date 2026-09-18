@@ -47,6 +47,7 @@ export function buildAiReadingPayload(input, interpretation) {
     },
     context: input.context || "Không cung cấp",
     intent: input.question.trim() || "Khám phá góc nhìn cho hiện tại",
+    questionAnalysis: input.questionAnalysis,
     spread: { id: spreadId, name: spread.name, positions: spread.positions },
     cards,
     analysis: {

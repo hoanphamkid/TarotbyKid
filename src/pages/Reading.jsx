@@ -17,6 +17,7 @@ import { contexts, loveCategories, prompts, spreads } from "../data/options";
 import { shuffleDeck } from "../utils/shuffle";
 import { getDaily, saveDaily, saveHistory } from "../utils/storage";
 import { getReading, AI_ENABLED } from "../services/aiTarotService";
+import { analyzeQuestion } from "../services/questionAnalyzer";
 import { CardBack } from "../components/Card";
 import ReadingResult from "../components/ReadingResult";
 const readingTopics = [
@@ -130,6 +131,12 @@ export default function Reading({
         category,
         context,
         spread,
+        questionAnalysis: analyzeQuestion({
+          question,
+          selectedCategory: category,
+          selectedContext: context,
+          spread,
+        }),
         cards: selected.map((index, position) => ({
           ...deck[index],
           position: spreads[spread].positions[position],

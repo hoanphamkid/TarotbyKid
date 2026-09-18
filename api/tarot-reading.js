@@ -1,5 +1,6 @@
 import { interpretTarot } from "../src/services/tarotEngine.js";
 import { buildAiReadingPayload } from "../src/services/aiPayload.js";
+import { analyzeQuestion } from "../src/services/questionAnalyzer.js";
 import { categories, contexts, spreads } from "../src/data/options.js";
 
 const categoryIds = new Set(categories.map(([id]) => id));
@@ -89,6 +90,12 @@ export default async function handler(req, res) {
   try {
     body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     if (!validReading(body)) throw new Error("Invalid reading");
+    body.questionAnalysis = analyzeQuestion({
+      question: body.question,
+      selectedCategory: body.category,
+      selectedContext: body.context,
+      spread: body.spread,
+    });
     aiPayload = buildAiReadingPayload(body, interpretTarot(body));
   } catch {
     return res.status(400).json({ error: "Invalid reading" });
