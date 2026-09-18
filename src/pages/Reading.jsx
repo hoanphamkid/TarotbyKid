@@ -69,6 +69,13 @@ export default function Reading({
       clearTimeout(timer.current);
     };
   }, []);
+  useEffect(() => {
+    if (stage === "setup") return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [stage]);
   const needed = spreads[spread].positions.length;
   const contextConfig = contexts[category];
   const visibleSpreads = showMoreSpreads
@@ -216,7 +223,6 @@ export default function Reading({
             }
             setFormError("");
             setStage("focus");
-            window.scrollTo({ top: 0, behavior: "smooth" });
           }}
         >
           {!daily && (

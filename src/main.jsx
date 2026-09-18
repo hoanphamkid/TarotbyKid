@@ -16,6 +16,12 @@ import Space from "./pages/Space";
 import Feedback from "./pages/Feedback";
 import WelcomeModal from "./components/WelcomeModal";
 import "./styles/index.css";
+
+const navigation = performance.getEntriesByType("navigation")[0];
+if (navigation?.type === "reload" && window.location.pathname !== "/") {
+  window.location.replace("/");
+}
+
 class ErrorBoundary extends React.Component {
   state = { error: false };
   static getDerivedStateFromError() {
