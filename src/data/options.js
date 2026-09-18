@@ -34,6 +34,12 @@ export const spreads = {
     description: "Nhìn rõ tình huống và bước tiếp theo.",
     positions: ["Tình huống", "Trở ngại", "Lời khuyên"],
   },
+  "obstacle-advice": {
+    name: "Trở ngại - Lời khuyên",
+    description:
+      "Nhìn thẳng điều đang cản trở và bước bạn có thể chủ động làm tiếp.",
+    positions: ["Trở ngại", "Lời khuyên"],
+  },
   "deep-5": {
     name: "Bức tranh toàn cảnh",
     description: "Năm góc nhìn để hiểu sâu hơn câu chuyện.",
@@ -88,7 +94,15 @@ export const contexts = {
   },
   relationship: {
     label: "Mối quan hệ bạn muốn hỏi",
-    options: ["Người yêu", "Vợ/chồng", "Người thân", "Bạn bè", "Đồng nghiệp", "Đối tác", "Khác"],
+    options: [
+      "Người yêu",
+      "Vợ/chồng",
+      "Người thân",
+      "Bạn bè",
+      "Đồng nghiệp",
+      "Đối tác",
+      "Khác",
+    ],
   },
   family: {
     label: "Tình trạng gia đình",
