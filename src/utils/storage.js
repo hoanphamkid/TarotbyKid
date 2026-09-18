@@ -52,3 +52,55 @@ export function getDaily() {
 export function saveDaily(record) {
   return writeStorage(`dailyTarot_${localDay()}`, record);
 }
+
+export function getJournalEntry(recordId) {
+  const entries = readStorage("tarotJournal", {});
+  return entries && typeof entries === "object" ? entries[recordId] || {} : {};
+}
+
+export function saveJournalEntry(recordId, patch) {
+  const entries = readStorage("tarotJournal", {});
+  const next = {
+    ...(entries && typeof entries === "object" ? entries : {}),
+    [recordId]: { ...getJournalEntry(recordId), ...patch, updatedAt: new Date().toISOString() },
+  };
+  return writeStorage("tarotJournal", next);
+}
+
+export function getJournalEntries() {
+  const entries = readStorage("tarotJournal", {});
+  return entries && typeof entries === "object" ? entries : {};
+}
+
+export function getDailyStats() {
+  try {
+    const days = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (!key?.startsWith("dailyTarot_")) continue;
+      const date = key.replace("dailyTarot_", "");
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date) && validRecord(readStorage(key, null))) days.push(date);
+    }
+    const uniqueDays = [...new Set(days)].sort();
+    let streak = 0;
+    const cursor = new Date();
+    while (uniqueDays.includes(localDay(cursor))) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    let best = 0;
+    let run = 0;
+    let previous = null;
+    for (const day of uniqueDays) {
+      const current = new Date(`${day}T00:00:00`);
+      const expected = previous ? new Date(previous) : null;
+      if (expected) expected.setDate(expected.getDate() + 1);
+      run = expected && current.getTime() === expected.getTime() ? run + 1 : 1;
+      best = Math.max(best, run);
+      previous = current;
+    }
+    return { total: uniqueDays.length, streak, best };
+  } catch {
+    return { total: 0, streak: 0, best: 0 };
+  }
+}

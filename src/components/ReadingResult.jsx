@@ -4,6 +4,7 @@ import { Share2, ArrowRight, BookmarkCheck } from "lucide-react";
 import { cardById } from "../data/tarotCards";
 import { interpretTarot } from "../services/tarotEngine";
 import { CardBack, CardImage } from "./Card";
+import JournalPanel from "./JournalPanel";
 
 export default function ReadingResult({ record, saved = true, daily = false }) {
   const [notice, setNotice] = useState("");
@@ -129,6 +130,7 @@ export default function ReadingResult({ record, saved = true, daily = false }) {
           <span className="eyebrow">06 · LỜI KHUYÊN</span>
           <h2>{reading.advice}</h2>
         </section>
+        <JournalPanel record={record} />
         {reading.aiNarrative && (
           <section>
             <h2>Góc nhìn mở rộng</h2>
