@@ -1,25 +1,189 @@
-import React from 'react';
-import { describe,it,expect,vi } from 'vitest';
-import { render,screen,within,waitFor,fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
-import Reading from '../src/pages/Reading';
-import { Cards,CardDetail } from '../src/pages/Cards';
-import History from '../src/pages/History';
-import Home from '../src/pages/Home';
-import { getHistory,getDaily } from '../src/utils/storage';
-import { getReading } from '../src/services/aiTarotService';
-import { Routes,Route } from 'react-router-dom';
-const mount=(element,url='/')=>render(<MemoryRouter initialEntries={[url]}>{element}</MemoryRouter>);
-async function draw(user,count=3){await user.click(screen.getByRole('button',{name:'Tiếp tục'}));await user.click(screen.getByRole('button',{name:'Xào bài'}));await screen.findByRole('button',{name:'Lá úp 1'},{timeout:3500});for(let i=1;i<=count;i++)await user.click(screen.getByRole('button',{name:`Lá úp ${i}`}));await user.click(screen.getByRole('button',{name:'Lật bài'}));await screen.findByText('Bức tranh của trải bài');}
-describe('User workflows',()=>{
- it('home has working destinations and six FAQ entries',()=>{mount(<Home/>);expect(screen.getByRole('link',{name:/Rút bài ngay/}).getAttribute('href')).toBe('/reading');expect(document.querySelectorAll('details')).toHaveLength(6);expect(screen.getAllByRole('img')).toHaveLength(4);});
- it('draws three unique cards, enforces selection limit, persists history and shares',async()=>{const user=userEvent.setup();mount(<Reading/>);await user.type(screen.getByLabelText('Bạn đang muốn tìm câu trả lời cho điều gì?'),'Điều gì cần chú ý?');await user.click(screen.getByRole('button',{name:'Tiếp tục'}));await user.click(screen.getByRole('button',{name:'Xào bài'}));await screen.findByRole('button',{name:'Lá úp 1'},{timeout:3500});expect(screen.getByRole('button',{name:'Lật bài'}).disabled).toBe(true);for(let i=1;i<=3;i++)await user.click(screen.getByRole('button',{name:`Lá úp ${i}`}));expect(screen.getByRole('button',{name:'Lá úp 4'}).disabled).toBe(true);await user.click(screen.getByRole('button',{name:/Lá úp 2, đã chọn/}));expect(screen.getByText('Đã chọn 2/3')).toBeTruthy();await user.click(screen.getByRole('button',{name:'Lá úp 4'}));await user.click(screen.getByRole('button',{name:'Lật bài'}));await screen.findByText('Bức tranh của trải bài');const rows=getHistory();expect(rows).toHaveLength(1);expect(new Set(rows[0].cards.map(c=>c.id)).size).toBe(3);expect(rows[0].question).toBe('Điều gì cần chú ý?');expect(screen.getByRole('link',{name:/Trải bài mới/}).getAttribute('href')).toContain('?new=');await user.click(screen.getByRole('button',{name:'Chia sẻ kết quả'}));expect(await navigator.clipboard.readText()).toContain('HoanPhamTarot');},10000);
- it('shows context choices that match the selected topic',async()=>{const user=userEvent.setup();mount(<Reading/>);await user.click(screen.getByRole('radio',{name:'Tình yêu'}));const loveContext=screen.getByRole('radiogroup',{name:'Tình trạng mối quan hệ'});expect(within(loveContext).getByRole('radio',{name:'Đang tìm hiểu'})).toBeTruthy();await user.click(screen.getByRole('radio',{name:'Công việc'}));const careerContext=screen.getByRole('radiogroup',{name:'Tình trạng công việc'});expect(within(careerContext).getByRole('radio',{name:'Đang tìm việc'})).toBeTruthy();expect(screen.queryByRole('radiogroup',{name:'Tình trạng mối quan hệ'})).toBeNull();await user.click(screen.getByRole('radio',{name:'Tài chính'}));expect(screen.getByRole('radiogroup',{name:'Tình hình tài chính hiện tại'})).toBeTruthy();},10000);
- it('shows a focused selection of 24 shuffled cards and allows selecting the last card',async()=>{const user=userEvent.setup();mount(<Reading/>);await user.click(screen.getByRole('button',{name:'Tiếp tục'}));await user.click(screen.getByRole('button',{name:'Xào bài'}));await screen.findByRole('button',{name:'Lá úp 1'},{timeout:3500});expect(screen.getAllByRole('button',{name:/^Lá úp/})).toHaveLength(24);await user.click(screen.getByRole('button',{name:'Lá úp 24'}));expect(screen.getByRole('button',{name:'Lá úp 24, đã chọn thứ 1'}).getAttribute('aria-pressed')).toBe('true');},10000);
- it('daily is fixed after remount and history deletion does not remove it',async()=>{const user=userEvent.setup();const view=mount(<Reading initialCategory="daily" daily/>);await draw(user,1);const original=getDaily();expect(original.cards).toHaveLength(1);view.unmount();const history=mount(<History/>);await user.click(screen.getByRole('button',{name:'Xóa toàn bộ lịch sử'}));await user.click(screen.getByRole('button',{name:'Xác nhận xóa'}));expect(getHistory()).toHaveLength(0);history.unmount();mount(<Reading initialCategory="daily" daily/>);expect(screen.queryByRole('button',{name:'Tiếp tục'})).toBeNull();expect(getDaily().cards).toEqual(original.cards);expect(screen.getByText('Bức tranh của trải bài')).toBeTruthy();},10000);
- it('library searches Vietnamese without accents, filters and recovers from no results',async()=>{const user=userEvent.setup();mount(<Cards/>);expect(screen.getAllByRole('img')).toHaveLength(78);await user.click(screen.getByRole('button',{name:'Cups'}));expect(screen.getAllByRole('img')).toHaveLength(14);await user.click(screen.getByRole('button',{name:'Tất cả'}));await user.type(screen.getByRole('textbox',{name:'Tìm lá bài'}),'nguoi tinh');expect(screen.getAllByRole('img')).toHaveLength(1);expect(screen.getByRole('link',{name:/The Lovers/}).getAttribute('href')).toBe('/cards/the-lovers');await user.clear(screen.getByRole('textbox'));await user.type(screen.getByRole('textbox'),'zzzzzz');expect(screen.getByText('Chưa tìm thấy lá bài')).toBeTruthy();await user.click(screen.getByRole('button',{name:'Xóa bộ lọc'}));expect(screen.getAllByRole('img')).toHaveLength(78);});
- it('card detail changes interpretation and rotation, handles failed images',async()=>{const user=userEvent.setup();mount(<Routes><Route path="/cards/:slug" element={<CardDetail/>}/></Routes>,'/cards/the-lovers');await user.click(screen.getByRole('button',{name:'Lá ngược'}));expect(screen.getByRole('img').className).toContain('reversed');expect(screen.getAllByText(/Bất đồng về giá trị/).length).toBeGreaterThan(0);fireEvent.error(screen.getByRole('img'));expect(screen.queryByRole('img')).toBeNull();expect(screen.getAllByText('The Lovers').length).toBeGreaterThan(0);});
- it('rule-based mode never sends questions over the network',async()=>{const fetch=vi.spyOn(globalThis,'fetch');await getReading({question:'Riêng tư',context:'',spread:'single',cards:[{id:'ar00',orientation:'upright'}]});expect(fetch).not.toHaveBeenCalled();});
- it('history can reopen and delete individual readings',async()=>{const user=userEvent.setup();const view=mount(<Reading/>,'/reading?spread=single');await draw(user,1);view.unmount();mount(<History/>);await user.click(screen.getByRole('button',{name:'Xem lại'}));expect(screen.getByText('Bức tranh của trải bài')).toBeTruthy();await user.click(screen.getByRole('button',{name:'Về lịch sử'}));await user.click(screen.getByRole('button',{name:/Xóa trải bài/}));expect(screen.getByText('Hành trình của bạn bắt đầu từ đây')).toBeTruthy();},10000);
+import React from "react";
+import { describe, it, expect, vi } from "vitest";
+import {
+  render,
+  screen,
+  within,
+  waitFor,
+  fireEvent,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
+import Reading from "../src/pages/Reading";
+import { Cards, CardDetail } from "../src/pages/Cards";
+import History from "../src/pages/History";
+import Home from "../src/pages/Home";
+import { getHistory, getDaily } from "../src/utils/storage";
+import { getReading } from "../src/services/aiTarotService";
+import { Routes, Route } from "react-router-dom";
+const mount = (element, url = "/") =>
+  render(<MemoryRouter initialEntries={[url]}>{element}</MemoryRouter>);
+async function draw(user, count = 3) {
+  const question = screen.queryByRole("textbox");
+  if (question) await user.type(question, "Câu hỏi kiểm tra");
+  await user.click(screen.getByRole("button", { name: "Tiếp tục" }));
+  await user.click(screen.getByRole("button", { name: "Xào bài" }));
+  await screen.findByRole("button", { name: "Lá úp 1" }, { timeout: 3500 });
+  for (let i = 1; i <= count; i++)
+    await user.click(screen.getByRole("button", { name: `Lá úp ${i}` }));
+  await user.click(screen.getByRole("button", { name: "Lật bài" }));
+  await screen.findByText("Bức tranh của trải bài");
+}
+describe("User workflows", () => {
+  it("home has working destinations and six FAQ entries", () => {
+    mount(<Home />);
+    expect(
+      screen.getByRole("link", { name: /Rút bài ngay/ }).getAttribute("href"),
+    ).toBe("/reading");
+    expect(document.querySelectorAll("details")).toHaveLength(6);
+    expect(screen.getAllByRole("img")).toHaveLength(4);
+  });
+  it("draws three unique cards, enforces selection limit, persists history and shares", async () => {
+    const user = userEvent.setup();
+    mount(<Reading />);
+    await user.type(
+      screen.getByLabelText("Bạn đang muốn tìm câu trả lời cho điều gì?"),
+      "Điều gì cần chú ý?",
+    );
+    await user.click(screen.getByRole("button", { name: "Tiếp tục" }));
+    await user.click(screen.getByRole("button", { name: "Xào bài" }));
+    await screen.findByRole("button", { name: "Lá úp 1" }, { timeout: 3500 });
+    expect(screen.getByRole("button", { name: "Lật bài" }).disabled).toBe(true);
+    for (let i = 1; i <= 3; i++)
+      await user.click(screen.getByRole("button", { name: `Lá úp ${i}` }));
+    expect(screen.getByRole("button", { name: "Lá úp 4" }).disabled).toBe(true);
+    await user.click(screen.getByRole("button", { name: /Lá úp 2, đã chọn/ }));
+    expect(screen.getByText("Đã chọn 2/3")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Lá úp 4" }));
+    await user.click(screen.getByRole("button", { name: "Lật bài" }));
+    await screen.findByText("Bức tranh của trải bài");
+    const rows = getHistory();
+    expect(rows).toHaveLength(1);
+    expect(new Set(rows[0].cards.map((c) => c.id)).size).toBe(3);
+    expect(rows[0].question).toBe("Điều gì cần chú ý?");
+    expect(
+      screen.getByRole("link", { name: /Trải bài mới/ }).getAttribute("href"),
+    ).toContain("?new=");
+    await user.click(screen.getByRole("button", { name: "Chia sẻ kết quả" }));
+    expect(await navigator.clipboard.readText()).toContain("HoanPhamTarot");
+  }, 10000);
+  it("shows context choices that match the selected topic", async () => {
+    const user = userEvent.setup();
+    mount(<Reading />);
+    await user.click(screen.getByRole("radio", { name: "Tình yêu" }));
+    const loveContext = screen.getByRole("radiogroup", {
+      name: "Tình trạng mối quan hệ",
+    });
+    expect(
+      within(loveContext).getByRole("radio", { name: "Đang tìm hiểu" }),
+    ).toBeTruthy();
+    await user.click(screen.getByRole("radio", { name: "Công việc" }));
+    const careerContext = screen.getByRole("radiogroup", {
+      name: "Tình trạng công việc",
+    });
+    expect(
+      within(careerContext).getByRole("radio", { name: "Đang tìm việc" }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("radiogroup", { name: "Tình trạng mối quan hệ" }),
+    ).toBeNull();
+    await user.click(screen.getByRole("radio", { name: "Tài chính" }));
+    expect(
+      screen.getByRole("radiogroup", { name: "Tình hình tài chính hiện tại" }),
+    ).toBeTruthy();
+  }, 10000);
+  it("shows a focused selection of 24 shuffled cards and allows selecting the last card", async () => {
+    const user = userEvent.setup();
+    mount(<Reading />);
+    await user.type(screen.getByRole("textbox"), "Câu hỏi kiểm tra");
+    await user.click(screen.getByRole("button", { name: "Tiếp tục" }));
+    await user.click(screen.getByRole("button", { name: "Xào bài" }));
+    await screen.findByRole("button", { name: "Lá úp 1" }, { timeout: 3500 });
+    expect(screen.getAllByRole("button", { name: /^Lá úp/ })).toHaveLength(24);
+    await user.click(screen.getByRole("button", { name: "Lá úp 24" }));
+    expect(
+      screen
+        .getByRole("button", { name: "Lá úp 24, đã chọn thứ 1" })
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+  }, 10000);
+  it("daily is fixed after remount and history deletion does not remove it", async () => {
+    const user = userEvent.setup();
+    const view = mount(<Reading initialCategory="daily" daily />);
+    await draw(user, 1);
+    const original = getDaily();
+    expect(original.cards).toHaveLength(1);
+    view.unmount();
+    const history = mount(<History />);
+    await user.click(
+      screen.getByRole("button", { name: "Xóa toàn bộ lịch sử" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Xác nhận xóa" }));
+    expect(getHistory()).toHaveLength(0);
+    history.unmount();
+    mount(<Reading initialCategory="daily" daily />);
+    expect(screen.queryByRole("button", { name: "Tiếp tục" })).toBeNull();
+    expect(getDaily().cards).toEqual(original.cards);
+    expect(screen.getByText("Bức tranh của trải bài")).toBeTruthy();
+  }, 10000);
+  it("library searches Vietnamese without accents, filters and recovers from no results", async () => {
+    const user = userEvent.setup();
+    mount(<Cards />);
+    expect(screen.getAllByRole("img")).toHaveLength(78);
+    await user.click(screen.getByRole("button", { name: "Cups" }));
+    expect(screen.getAllByRole("img")).toHaveLength(14);
+    await user.click(screen.getByRole("button", { name: "Tất cả" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Tìm lá bài" }),
+      "nguoi tinh",
+    );
+    expect(screen.getAllByRole("img")).toHaveLength(1);
+    expect(
+      screen.getByRole("link", { name: /The Lovers/ }).getAttribute("href"),
+    ).toBe("/cards/the-lovers");
+    await user.clear(screen.getByRole("textbox"));
+    await user.type(screen.getByRole("textbox"), "zzzzzz");
+    expect(screen.getByText("Chưa tìm thấy lá bài")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
+    expect(screen.getAllByRole("img")).toHaveLength(78);
+  });
+  it("card detail changes interpretation and rotation, handles failed images", async () => {
+    const user = userEvent.setup();
+    mount(
+      <Routes>
+        <Route path="/cards/:slug" element={<CardDetail />} />
+      </Routes>,
+      "/cards/the-lovers",
+    );
+    await user.click(screen.getByRole("button", { name: "Lá ngược" }));
+    expect(screen.getByRole("img").className).toContain("reversed");
+    expect(screen.getAllByText(/Bất đồng về giá trị/).length).toBeGreaterThan(
+      0,
+    );
+    fireEvent.error(screen.getByRole("img"));
+    expect(screen.queryByRole("img")).toBeNull();
+    expect(screen.getAllByText("The Lovers").length).toBeGreaterThan(0);
+  });
+  it("rule-based mode never sends questions over the network", async () => {
+    const fetch = vi.spyOn(globalThis, "fetch");
+    await getReading({
+      question: "Riêng tư",
+      context: "",
+      spread: "single",
+      cards: [{ id: "ar00", orientation: "upright" }],
+    });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it("history can reopen and delete individual readings", async () => {
+    const user = userEvent.setup();
+    const view = mount(<Reading />, "/reading?spread=single");
+    await draw(user, 1);
+    view.unmount();
+    mount(<History />);
+    await user.click(screen.getByRole("button", { name: "Xem lại" }));
+    expect(screen.getByText("Bức tranh của trải bài")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Về lịch sử" }));
+    await user.click(screen.getByRole("button", { name: /Xóa trải bài/ }));
+    expect(screen.getByText("Hành trình của bạn bắt đầu từ đây")).toBeTruthy();
+  }, 10000);
 });
