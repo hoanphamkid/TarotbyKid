@@ -14,6 +14,7 @@ import { Cards, CardDetail } from "./pages/Cards";
 import History from "./pages/History";
 import Space from "./pages/Space";
 import Feedback from "./pages/Feedback";
+import WelcomeModal from "./components/WelcomeModal";
 import "./styles/index.css";
 class ErrorBoundary extends React.Component {
   state = { error: false };
@@ -45,6 +46,7 @@ function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <WelcomeModal />
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Home />} />
