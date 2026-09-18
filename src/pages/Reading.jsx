@@ -58,6 +58,7 @@ export default function Reading({
   const [saved, setSaved] = useState(true);
   const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
+  const questionRef = useRef(null);
   const timer = useRef();
   const busy = useRef(false);
   const active = useRef(true);
@@ -205,6 +206,11 @@ export default function Reading({
           onSubmit={(event) => {
             event.preventDefault();
             if (!daily && !question.trim()) {
+              questionRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+              questionRef.current?.focus({ preventScroll: true });
               setFormError("Vui lòng nhập câu hỏi trước khi tiếp tục.");
               return;
             }
@@ -252,6 +258,7 @@ export default function Reading({
               <span>Không bắt buộc</span>
             </div>
             <textarea
+              ref={questionRef}
               id="question"
               maxLength={500}
               rows={4}
