@@ -25,6 +25,8 @@ Viết tiếng Việt tự nhiên, nhẹ nhàng, rõ ràng, không huyền bí q
 
 Phần “Trả lời câu hỏi” phải đi thẳng vào câu hỏi. Nêu sự mâu thuẫn khi dữ liệu lá thể hiện hai chiều, không ép thành một kết luận. “Thông điệp ngắn” chỉ 1-2 câu, phù hợp để chia sẻ.`;
 
+const chatSystemPrompt = `Bạn là Tarot Reader đang trò chuyện trực tiếp bằng tiếng Việt. Hãy trả lời tự nhiên, ấm áp, rõ ràng như ChatGPT, tập trung vào tin nhắn mới nhất của người dùng. Dùng trải bài và câu hỏi ban đầu để giữ ngữ cảnh, nhưng không lặp lại toàn bộ kết quả. Hãy hỏi lại khi câu chuyện chưa rõ. Không khẳng định biết chắc suy nghĩ của người khác hay tương lai; dùng ngôn ngữ gợi ý. Mỗi lần trả lời khoảng 2-5 đoạn ngắn, không cần Markdown heading.`;
+
 function getClientIp(req) {
   const forwarded = req.headers?.["x-forwarded-for"];
   return typeof forwarded === "string"
@@ -97,6 +99,13 @@ export default async function handler(req, res) {
       spread: body.spread,
     });
     aiPayload = buildAiReadingPayload(body, interpretTarot(body));
+    if (Array.isArray(body.chatMessages)) {
+      aiPayload.conversation = body.chatMessages
+        .filter((item) => item && ["user", "assistant"].includes(item.role) && typeof item.content === "string")
+        .slice(-12)
+        .map((item) => ({ role: item.role, content: item.content.slice(0, 1200) }));
+      aiPayload.chatInstruction = "Đây là lượt trò chuyện tiếp theo. Hãy trả lời trực tiếp câu chuyện mới nhất, nhớ ngữ cảnh trước đó, không lặp lại toàn bộ bài Tarot và không dùng tiêu đề Markdown dài.";
+    }
   } catch {
     return res.status(400).json({ error: "Invalid reading" });
   }
@@ -110,10 +119,15 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: process.env.AI_MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: JSON.stringify(aiPayload) },
-        ],
+        messages: body.chatMessages?.length
+          ? [
+              { role: "system", content: chatSystemPrompt },
+              { role: "user", content: JSON.stringify({ readingContext: aiPayload, conversation: aiPayload.conversation }) },
+            ]
+          : [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: JSON.stringify(aiPayload) },
+            ],
         temperature: 0.3,
         max_tokens: 2200,
       }),

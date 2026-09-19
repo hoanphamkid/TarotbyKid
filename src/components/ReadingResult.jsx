@@ -8,6 +8,9 @@ import JournalPanel from "./JournalPanel";
 
 export default function ReadingResult({ record, saved = true, daily = false }) {
   const [notice, setNotice] = useState("");
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatBusy, setChatBusy] = useState(false);
   const baseline = interpretTarot(record);
   const reading = {
     ...baseline,
@@ -31,6 +34,34 @@ export default function ReadingResult({ record, saved = true, daily = false }) {
           "Không thể chia sẻ tự động. Bạn có thể chọn và sao chép nội dung kết quả.",
         );
     }
+  }
+  async function sendChat(event) {
+    event.preventDefault();
+    const content = chatInput.trim();
+    if (!content || chatBusy) return;
+    const next = [...chatMessages, { role: "user", content }];
+    setChatMessages(next);
+    setChatInput("");
+    setChatBusy(true);
+    try {
+      const response = await fetch("/api/tarot-reading", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: record.question || "",
+          category: record.category || "general",
+          context: record.context || "",
+          spread: record.spread || "single",
+          cards: (record.cards || []).map(({ id, orientation }) => ({ id, orientation })),
+          chatMessages: next,
+        }),
+        signal: AbortSignal.timeout(20000),
+      });
+      const data = await response.json();
+      if (!response.ok || typeof data.narrative !== "string") throw new Error("Chat unavailable");
+      setChatMessages((messages) => [...messages, { role: "assistant", content: data.narrative }]);
+    } catch {
+      setChatMessages((messages) => [...messages, { role: "assistant", content: "Mình chưa thể kết nối lúc này. Bạn thử lại sau một chút nhé." }]);
+    } finally { setChatBusy(false); }
   }
   return (
     <div className="result">
@@ -131,6 +162,13 @@ export default function ReadingResult({ record, saved = true, daily = false }) {
           <h2>{reading.advice}</h2>
         </section>
         <JournalPanel record={record} />
+        <section className="tarot-chat" aria-labelledby="tarot-chat-title">
+          <span className="eyebrow">KỂ THÊM VỚI TAROT READER</span>
+          <h2 id="tarot-chat-title">Bạn muốn chia sẻ thêm điều gì?</h2>
+          <p className="chat-intro">Bạn có thể kể tiếp câu chuyện hoặc hỏi thêm nhiều lần. Mình sẽ giữ ngữ cảnh của trải bài này trong cuộc trò chuyện.</p>
+          {chatMessages.length > 0 && <div className="chat-thread">{chatMessages.map((message, index) => <div className={`chat-message ${message.role}`} key={`${message.role}-${index}`}><span>{message.role === "user" ? "BẠN" : "TAROT READER"}</span><p>{message.content}</p></div>)}</div>}
+          <form className="chat-form" onSubmit={sendChat}><textarea value={chatInput} onChange={(event) => setChatInput(event.target.value)} maxLength={1200} rows={3} placeholder="Kể thêm điều đang xảy ra với bạn..." aria-label="Tin nhắn cho Tarot Reader" /><div><small>{chatInput.length}/1200</small><button className="button primary" type="submit" disabled={chatBusy || !chatInput.trim()}>{chatBusy ? "Đang lắng nghe…" : "Gửi lời chia sẻ"} <ArrowRight size={15} /></button></div></form>
+        </section>
         {reading.aiNarrative && (
           <section>
             <h2>Góc nhìn mở rộng</h2>
