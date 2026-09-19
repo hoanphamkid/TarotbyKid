@@ -13,43 +13,6 @@
   letter-spacing: 0;
   color-scheme: dark;
 }
-
-/* Reading experience: one thought, one screen. */
-.reading-experience { max-width: 720px; margin: 0 auto; padding: 10px 0 70px; }
-.reading-progress { display:flex; align-items:center; gap:14px; color:var(--muted); font-size:10px; letter-spacing:.12em; }
-.reading-progress div { display:flex; gap:6px; flex:1; }
-.reading-progress i { height:2px; flex:1; background:#ffffff1c; transition:background .35s ease; }
-.reading-progress i.active { background:var(--gold); }
-.reading-progress small { letter-spacing:.04em; }
-.reading-stage { min-height:650px; display:grid; place-items:center; animation:reading-enter .4s ease both; }
-.reveal-screen,.story-screen { width:100%; text-align:center; padding:55px 20px; }
-.reveal-screen .eyebrow,.story-screen .eyebrow { display:block; margin-bottom:30px; }
-.hero-card { width:min(280px,72vw); margin:0 auto 24px; padding:0; border:0; background:none; cursor:pointer; filter:drop-shadow(0 20px 28px #0009); animation:card-float 4s ease-in-out infinite; }
-.hero-card .tarot-image { display:block; width:100%; border-radius:7px; }
-.reveal-screen h1 { margin:0; font-size:32px; }
-.card-subtitle { color:var(--muted); margin:7px 0 12px; }
-.orientation-badge { display:inline-block; border:1px solid var(--gold); color:var(--gold); padding:5px 10px; font-size:10px; letter-spacing:.12em; }
-.reveal-cta { display:flex; margin:32px auto 0; }
-.story-screen { max-width:650px; }
-.story-screen blockquote { margin:35px auto; max-width:590px; border:0; color:#f5f1ea; font-family:Georgia,serif; font-size:clamp(26px,5vw,42px); line-height:1.35; }
-.story-screen > p { max-width:590px; margin:18px auto; color:var(--muted); font-size:16px; line-height:1.8; }
-.story-screen h1 { font-size:clamp(30px,6vw,48px); }
-.story-screen h2 { margin:52px 0 20px; font-size:25px; }
-.keyword-flow { margin:48px 0; padding:24px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); text-align:left; }
-.keyword-flow > span { color:var(--gold); font-size:10px; letter-spacing:.12em; }
-.keyword-flow div { display:flex; flex-wrap:wrap; gap:12px; margin-top:18px; }
-.keyword-flow strong { font-family:Georgia,serif; font-size:25px; font-weight:400; color:#f5f1ea; }
-.keyword-flow strong:not(:last-child)::after { content:"  ↓"; color:var(--gold); font-family:inherit; font-size:15px; }
-.dive-options { display:grid; gap:10px; text-align:left; margin:20px 0 26px; }
-.dive-options button { min-height:52px; display:flex; align-items:center; gap:12px; padding:0 16px; border:1px solid #ffffff1b; color:var(--muted); background:#100c17; text-align:left; }
-.dive-options button span { color:var(--gold); font-size:19px; }.dive-options button svg { margin-left:auto; }.dive-options button.selected { border-color:var(--gold); color:#f5f1ea; }
-.dive-result { margin:28px 0 34px; padding:25px; border-left:2px solid var(--gold); background:#d6b9810b; text-align:left; animation:reading-enter .35s ease both; }
-.dive-result .eyebrow { margin-bottom:16px; }.dive-result p { color:#eee6dc; line-height:1.8; }.action-line { display:flex; gap:18px; align-items:flex-start; }.action-line b { color:var(--gold); font-family:Georgia,serif; font-size:22px; font-weight:400; }
-.takeaway-screen { display:flex; flex-direction:column; align-items:center; }.takeaway-screen > svg { color:var(--gold); margin-bottom:30px; }.takeaway-screen blockquote { margin-top:20px; }.takeaway-screen .result-actions { width:100%; justify-content:center; margin-top:35px; }.takeaway-screen .journal-panel { width:100%; text-align:left; margin-top:50px; }
-.reading-back { display:flex; align-items:center; gap:7px; margin:0 auto; }.reading-note { text-align:center; color:var(--muted); font-size:11px; margin-top:24px; }
-@keyframes reading-enter { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
-@keyframes card-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
-@media (max-width:540px) { .reading-experience { padding-top:4px; }.reading-stage { min-height:calc(100vh - 150px); }.reveal-screen,.story-screen { padding:42px 4px; }.hero-card { width:min(230px,63vw); }.story-screen blockquote { font-size:27px; }.story-screen > p { font-size:15px; }.keyword-flow strong { font-size:20px; }.takeaway-screen .result-actions { flex-direction:column; align-items:stretch; }.takeaway-screen .result-actions .button { width:100%; justify-content:center; } }
 * {
   box-sizing: border-box;
 }
